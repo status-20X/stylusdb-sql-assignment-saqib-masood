@@ -10,7 +10,7 @@ async function executeSELECTQuery(query) {
     const filteredData = whereClauses.length > 0
         ? data.filter(row => whereClauses.every(clause => {
             // You can expand this to handle different operators
-            return row[clause.field] === clause.value;
+            return evaluateCondition(row,clause);
         }))
         : data;
 
@@ -23,5 +23,16 @@ async function executeSELECTQuery(query) {
         return selectedRow;
     });
 }
-
+function evaluateCondition(row, clause) {
+    const { field, operator, value } = clause;
+    switch (operator) {
+        case '=': return row[field] === value;
+        case '!=': return row[field] !== value;
+        case '>': return row[field] > value;
+        case '<': return row[field] < value;
+        case '>=': return row[field] >= value;
+        case '<=': return row[field] <= value;
+        default: throw new Error(`Unsupported operator: ${operator}`);
+    }
+}
 module.exports = executeSELECTQuery;
