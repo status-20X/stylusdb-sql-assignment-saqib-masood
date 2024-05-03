@@ -2,9 +2,22 @@
 function parseQuery(query) {
     query = query.trim();
 
+    
+    const orderByRegex = /\sORDER BY\s(.+)/i;
+    const orderByMatch = query.match(orderByRegex);
+    let orderByFields = null;
+    if (orderByMatch) {
+        orderByFields = orderByMatch[1].split(',').map(field => {
+            const [fieldName, order] = field.trim().split(/\s+/);
+            return { fieldName, order: order ? order.toUpperCase() : 'ASC' };
+        });
+    }
+    query=query.replace(orderByRegex,'');
+    
     const groupBySplit = query.split(/\sGROUP BY\s/i);
     const queryWithoutGroupBy = groupBySplit[0];
     let groupByFields = groupBySplit.length > 1 ? groupBySplit[1].trim().split(',').map(field => field.trim()) : null;
+
 
     const whereSplit = queryWithoutGroupBy.split(/\sWHERE\s/i);
     const queryWithoutWhere = whereSplit[0];
@@ -31,7 +44,7 @@ function parseQuery(query) {
 
     const aggregateFunctionRegex = /(\bCOUNT\b|\bAVG\b|\bSUM\b|\bMIN\b|\bMAX\b)\s*\(\s*(\*|\w+)\s*\)/i;
     const hasAggregateWithoutGroupBy = aggregateFunctionRegex.test(query) && !groupByFields;
-
+    console.log(orderByFields);
     return {
         fields: fields.split(',').map(field => field.trim()),
         table: table.trim(),
@@ -40,9 +53,11 @@ function parseQuery(query) {
         joinTable,
         joinCondition,
         groupByFields,
+        orderByFields, 
         hasAggregateWithoutGroupBy
     };
 }
+
 
 
 function parseWhereClause(whereString) {

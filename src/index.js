@@ -2,8 +2,10 @@ const { parseQuery } = require('./queryParser');
 const readCSV = require('./csvReader');
 
 function performInnerJoin(data, joinData, joinCondition, fields, table) {
+    
     return data.flatMap(mainRow => {
-        return joinData
+        // console.log("***************************************************",mainRow);
+        return joinData 
             .filter(joinRow => {
                 const mainValue = mainRow[joinCondition.left.split('.')[1]];
                 const joinValue = joinRow[joinCondition.right.split('.')[1]];
@@ -18,6 +20,7 @@ function performInnerJoin(data, joinData, joinCondition, fields, table) {
             });
     });
 }
+//acc={student.name=saqib,enrollment}
 
 function performLeftJoin(data, joinData, joinCondition, fields, table) {
     return data.flatMap(mainRow => {
@@ -83,7 +86,7 @@ function createResultRow(mainRow, joinRow, fields, table, includeAllMainFields) 
 }
 
 async function executeSELECTQuery(query) {
-    const { fields, table, whereClauses, joinType, joinTable, joinCondition, groupByFields, hasAggregateWithoutGroupBy } = parseQuery(query);
+    const { fields, table, whereClauses, joinType, joinTable, joinCondition, groupByFields,orderByFields, hasAggregateWithoutGroupBy } = parseQuery(query);
     let data = await readCSV(`${table}.csv`);
 
     // Perform INNER JOIN if specified
@@ -106,15 +109,17 @@ async function executeSELECTQuery(query) {
     // Apply WHERE clause filtering after JOIN (or on the original data if no join)
     let filteredData = whereClauses.length > 0
         ? data.filter(row => whereClauses.every(clause => evaluateCondition(row, clause)))
-        : data;
-
+        : data; 
+//map filter reduce
+//[{1,Muaz},{2,saqib}]
+//
     let groupResults = filteredData;
-    console.log({ hasAggregateWithoutGroupBy });
+    // console.log({ hasAggregateWithoutGroupBy });
     if (hasAggregateWithoutGroupBy) {
         // Special handling for queries like 'SELECT COUNT(*) FROM table'
         const result = {};
 
-        console.log({ filteredData })
+        // console.log({ filteredData })
 
         fields.forEach(field => {
             const match = /(\w+)\((\*|\w+)\)/.exec(field);
@@ -140,15 +145,43 @@ async function executeSELECTQuery(query) {
                 }
             }
         });
-
+//spred operator
         return [result];
         // Add more cases here if needed for other aggregates
     } else if (groupByFields) {
         groupResults = applyGroupBy(filteredData, groupByFields, fields);
+        let orderedResults = groupResults;
+        if (orderByFields) {
+            orderedResults = groupResults.sort((a, b) => {
+                for (let { fieldName, order } of orderByFields) {
+                    if (order === 'ASC') {
+                        if (a[fieldName] < b[fieldName]) return -1;
+                        if (a[fieldName] > b[fieldName]) return 1;
+                    } else if (order === 'DESC') {
+                        if (a[fieldName] < b[fieldName]) return 1;
+                        if (a[fieldName] > b[fieldName]) return -1;
+                    }
+                }
+                return 0;
+            });
+        }
         return groupResults;
+        
     } else {
         // Select the specified fields
-        return groupResults.map(row => {
+        let orderedResults = groupResults;
+        if (orderByFields) {
+            orderedResults = groupResults.sort((a, b) => {
+                for (let { fieldName, order } of orderByFields) {
+                    if (a[fieldName] < b[fieldName]) return order === 'ASC' ? -1 : 1;
+                    if (a[fieldName] > b[fieldName]) return order === 'ASC' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+
+        // Select the specified fields
+        return orderedResults.map(row => {
             const selectedRow = {};
             fields.forEach(field => {
                 // Assuming 'field' is just the column name without table prefix
