@@ -2,6 +2,14 @@
 function parseQuery(query) {
     query = query.trim();
 
+    const limitRegex = /\sLIMIT\s(\d+)/i;
+    const limitMatch = query.match(limitRegex);
+
+    let limit = null;
+    if (limitMatch) {
+        limit = parseInt(limitMatch[1]);
+    }
+    query=query.replace(limitRegex,'');
     
     const orderByRegex = /\sORDER BY\s(.+)/i;
     const orderByMatch = query.match(orderByRegex);
@@ -54,7 +62,8 @@ function parseQuery(query) {
         joinCondition,
         groupByFields,
         orderByFields, 
-        hasAggregateWithoutGroupBy
+        hasAggregateWithoutGroupBy,
+        limit
     };
 }
 

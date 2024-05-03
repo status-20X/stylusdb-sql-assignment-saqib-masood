@@ -86,7 +86,7 @@ function createResultRow(mainRow, joinRow, fields, table, includeAllMainFields) 
 }
 
 async function executeSELECTQuery(query) {
-    const { fields, table, whereClauses, joinType, joinTable, joinCondition, groupByFields,orderByFields, hasAggregateWithoutGroupBy } = parseQuery(query);
+    const { fields, table, whereClauses, joinType, joinTable, joinCondition, groupByFields,orderByFields, hasAggregateWithoutGroupBy , limit} = parseQuery(query);
     let data = await readCSV(`${table}.csv`);
 
     // Perform INNER JOIN if specified
@@ -165,6 +165,8 @@ async function executeSELECTQuery(query) {
                 return 0;
             });
         }
+        if(limit!==null)
+            groupResults = groupResults.slice(0, limit);
         return groupResults;
         
     } else {
@@ -179,7 +181,8 @@ async function executeSELECTQuery(query) {
                 return 0;
             });
         }
-
+        if(limit!==null)
+            orderedResults = orderedResults.slice(0, limit);
         // Select the specified fields
         return orderedResults.map(row => {
             const selectedRow = {};
