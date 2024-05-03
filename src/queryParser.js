@@ -32,10 +32,17 @@ function parseQuery(query) {
     const whereClause = whereSplit.length > 1 ? whereSplit[1].trim() : null;
 
     const joinSplit = queryWithoutWhere.split(/\s(INNER|LEFT|RIGHT) JOIN\s/i);
-    const selectPart = joinSplit[0].trim();
+    let selectPart = joinSplit[0].trim();
+
+    let isDistinct=false;
+    if (selectPart.toUpperCase().includes('SELECT DISTINCT')) {
+        isDistinct = true;
+        selectPart = selectPart.replace('SELECT DISTINCT', 'SELECT');
+    }
 
     const selectRegex = /^SELECT\s(.+?)\sFROM\s(.+)/i;
     const selectMatch = selectPart.match(selectRegex);
+    
     if (!selectMatch) {
         throw new Error("Error executing query: Query parsing error: Invalid SELECT format");
     }
@@ -62,7 +69,8 @@ function parseQuery(query) {
         groupByFields,
         orderByFields, 
         hasAggregateWithoutGroupBy,
-        limit
+        limit,
+        isDistinct
     };
 }
 
