@@ -208,7 +208,12 @@ function evaluateCondition(row, clause) {
     if (row[field] === undefined) {
         throw new Error(`Invalid field: ${field}`);
     }
-
+    
+    if (clause.operator === 'LIKE') {
+        // Transform SQL LIKE pattern to JavaScript RegExp pattern
+        const regexPattern = '^' + clause.value.replace(/%/g, '.*') + '$';
+        return new RegExp(regexPattern, 'i').test(row[clause.field]);
+    }
     // Parse row value and condition value based on their actual types
     const rowValue = parseValue(row[field]);
     let conditionValue = parseValue(value);

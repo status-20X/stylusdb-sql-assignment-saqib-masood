@@ -75,10 +75,14 @@ function parseQuery(query) {
 }
 
 
-
 function parseWhereClause(whereString) {
+    
     const conditionRegex = /(.*?)(=|!=|>|<|>=|<=)(.*)/;
     return whereString.split(/ AND | OR /i).map(conditionString => {
+        if (conditionString.includes(' LIKE ')) {
+            const [field, pattern] = conditionString.split(/\sLIKE\s/i);
+            return { field: field.trim(), operator: 'LIKE', value: pattern.trim().replace(/^'(.*)'$/, '$1') };
+        }
         const match = conditionString.match(conditionRegex);
         if (match) {
             const [, field, operator, value] = match;
