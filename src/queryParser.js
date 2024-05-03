@@ -10,7 +10,7 @@ function parseQuery(query) {
         limit = parseInt(limitMatch[1]);
     }
     query=query.replace(limitRegex,'');
-    
+
     const orderByRegex = /\sORDER BY\s(.+)/i;
     const orderByMatch = query.match(orderByRegex);
     let orderByFields = null;
@@ -37,9 +37,8 @@ function parseQuery(query) {
     const selectRegex = /^SELECT\s(.+?)\sFROM\s(.+)/i;
     const selectMatch = selectPart.match(selectRegex);
     if (!selectMatch) {
-        throw new Error('Invalid SELECT format');
+        throw new Error("Error executing query: Query parsing error: Invalid SELECT format");
     }
-
     const [, fields, table] = selectMatch;
 
     const joinInfo = parseJoinClause(queryWithoutWhere);
