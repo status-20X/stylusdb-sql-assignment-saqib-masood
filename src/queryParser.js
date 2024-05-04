@@ -113,6 +113,7 @@ function parseJoinClause(query) {
     };
 }
 function parseInsertQuery(query) {
+    //
     const insertRegex = /INSERT INTO (\w+)\s\((.+)\)\sVALUES\s\((.+)\)/i;
     const match = query.match(insertRegex);
 
@@ -128,5 +129,25 @@ function parseInsertQuery(query) {
         values: values.split(',').map(value => value.trim())
     };
 }
+function parseDeleteQuery(query){
+    //DELETE FROM courses WHERE course_id = '2'
+    const deleteRegex = /DELETE FROM (\w+)( WHERE (.*))?/i;
+    const match = query.match(deleteRegex);
+    if (!match) {
+        throw new Error("Invalid DELETE syntax.");
+    }
+
+    const [, table, , whereString] = match;
+    let whereClauses = [];
+    if (whereString) {
+        whereClauses = parseWhereClause(whereString);
+    }
+
+    return {
+        type: 'DELETE',
+        table: table.trim(),
+        whereClauses
+    };
+}
 // module.exports = parseQuery;
-module.exports = { parseSelectQuery, parseJoinClause ,parseInsertQuery};
+module.exports = { parseSelectQuery, parseJoinClause ,parseInsertQuery, parseDeleteQuery};
