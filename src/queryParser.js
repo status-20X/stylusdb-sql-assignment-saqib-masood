@@ -1,5 +1,5 @@
 
-function parseQuery(query) {
+function parseSelectQuery(query) {
     query = query.trim();
 
     const limitRegex = /\sLIMIT\s(\d+)/i;
@@ -58,7 +58,7 @@ function parseQuery(query) {
 
     const aggregateFunctionRegex = /(\bCOUNT\b|\bAVG\b|\bSUM\b|\bMIN\b|\bMAX\b)\s*\(\s*(\*|\w+)\s*\)/i;
     const hasAggregateWithoutGroupBy = aggregateFunctionRegex.test(query) && !groupByFields;
-    console.log(orderByFields);
+    // console.log(orderByFields);
     return {
         fields: fields.split(',').map(field => field.trim()),
         table: table.trim(),
@@ -112,6 +112,21 @@ function parseJoinClause(query) {
         joinCondition: null
     };
 }
+function parseInsertQuery(query) {
+    const insertRegex = /INSERT INTO (\w+)\s\((.+)\)\sVALUES\s\((.+)\)/i;
+    const match = query.match(insertRegex);
 
+    if (!match) {
+        throw new Error("Invalid INSERT INTO syntax.");
+    }
+
+    const [, table, columns, values] = match;
+    return {
+        type: 'INSERT',
+        table: table.trim(),
+        columns: columns.split(',').map(column => column.trim()),
+        values: values.split(',').map(value => value.trim())
+    };
+}
 // module.exports = parseQuery;
-module.exports = { parseQuery, parseJoinClause };
+module.exports = { parseSelectQuery, parseJoinClause ,parseInsertQuery};
