@@ -36,7 +36,7 @@
     "stylusdb-cli": "node ./src/cli.js"
   },
   "keywords": [],
-  "author": "Chakshu Gautam",
+  "author": "Saqib Masood",
   "license": "ISC",
   "devDependencies": {
     "csv-parser": "^3.0.0",
